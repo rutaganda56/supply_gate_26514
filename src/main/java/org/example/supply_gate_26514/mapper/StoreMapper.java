@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class StoreMapper {
 
-    public Store transformStoreToStoreDto(StoreDto storeDto) {
+    public Store transformStoreToStoreDto(StoreDto storeDto){
         Store store = new Store();
-        store.setStoreName(store.getStoreName());
-        store.setStoreEmail(store.getStoreEmail());
-        store.setPhoneNumber(store.getPhoneNumber());
+        store.setStoreName(storeDto.storeName());
+        store.setStoreEmail(storeDto.storeEmail());
+        store.setPhoneNumber(storeDto.phoneNumber());
         User user=new User();
         user.setUserId(storeDto.userId());
         store.setUser(user);
