@@ -22,6 +22,14 @@ public class Location {
     @JsonManagedReference("user-location")
     private List<User> user;
 
+    public List<User> getUser() {
+        return user;
+    }
+
+    public void setUser(List<User> user) {
+        this.user = user;
+    }
+
     public UUID getStructureId() {
         return structureId;
     }

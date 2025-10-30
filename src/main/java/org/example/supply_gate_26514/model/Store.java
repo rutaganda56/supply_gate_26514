@@ -38,6 +38,22 @@ public class Store {
     @JsonManagedReference("store-product")
     public List<Product> product;
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Product> getProduct() {
+        return product;
+    }
+
+    public void setProduct(List<Product> product) {
+        this.product = product;
+    }
+
     public Store() {
     }
 }
