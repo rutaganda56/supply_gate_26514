@@ -52,4 +52,9 @@ public class ProductService {
 
         return productMapper.transformToProductResponseDto(productRepository.save(updatedProduct));
     }
+
+    public String deleteProduct(UUID id) {
+        productRepository.deleteAll();
+        return "Product deleted";
+    }
 }
