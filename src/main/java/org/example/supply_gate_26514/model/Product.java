@@ -3,8 +3,9 @@ package org.example.supply_gate_26514.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,17 @@ public class Product {
     @JoinColumn(name = "category_id")
     @JsonBackReference("category-product")
     private Category category;
+    @CreationTimestamp
+    private LocalDateTime creationDate;
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
     @ManyToOne
     @JoinColumn(name = "store_id")
     @JsonBackReference("store-product")
@@ -25,10 +37,17 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @JsonManagedReference("product-review")
     private List<Review> review;
-    @OneToOne
-    @JoinColumn(name = "image_id")
-    @JsonBackReference("image-product")
-    private Image image;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference("image-product")
+    private List<ProductImage> productImages;
+
+    public List<ProductImage> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<ProductImage> productImages) {
+        this.productImages = productImages;
+    }
 
     public Category getCategory() {
         return category;
@@ -52,14 +71,6 @@ public class Product {
 
     public void setReview(List<Review> review) {
         this.review = review;
-    }
-
-    public Image getImage() {
-        return image;
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
     }
 
     public Product() {

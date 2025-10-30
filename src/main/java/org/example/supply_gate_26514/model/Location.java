@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
 @Entity
-@Table(name = "Administative_structure")
+@Table(name = "administrative_structure")
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -16,8 +16,17 @@ public class Location {
     @ManyToOne
     @JoinColumn(name="parent_id")
     private  Location parent;
+
+    public LocationEnum getStructureType() {
+        return structureType;
+    }
+
+    public void setStructureType(LocationEnum structureType) {
+        this.structureType = structureType;
+    }
+
     @Enumerated(EnumType.STRING)
-    private LocationEnum locationEnum;
+    private LocationEnum structureType;
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("user-location")
     private List<User> user;
@@ -47,7 +56,7 @@ public class Location {
     }
 
     public LocationEnum getLocationEnum() {
-        return locationEnum;
+        return structureType;
     }
 
     public void setStructureId(UUID structureId) {
@@ -66,19 +75,19 @@ public class Location {
         this.parent = parent;
     }
 
-    public void setLocationEnum(LocationEnum locationEnum) {
-        this.locationEnum = locationEnum;
+    public void setLocationEnum(LocationEnum structureType) {
+        this.structureType = structureType;
     }
 
     public Location() {
     }
 
-    public Location(UUID structureId, String structureCode, String structureName, Location parent, LocationEnum locationEnum) {
+    public Location(UUID structureId, String structureCode, String structureName, Location parent, LocationEnum structureType) {
         this.structureId = structureId;
         this.structureCode = structureCode;
         this.structureName = structureName;
         this.parent = parent;
-        this.locationEnum = locationEnum;
+        this.structureType = structureType;
     }
 }
 

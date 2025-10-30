@@ -3,7 +3,9 @@ package org.example.supply_gate_26514.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +23,17 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
+    @CreationTimestamp
+    private LocalDateTime creationDate;
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
     @ManyToOne
     @JoinColumn(name = "location_id")
     @JsonBackReference("user-location")

@@ -12,8 +12,16 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID categoryId;
-    @Enumerated(EnumType.STRING)
-    private CategoryEnum categoryType;
+    private String categoryName;
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @JsonManagedReference("category-product")
     private List<Product> product;
@@ -32,14 +40,6 @@ public class Category {
 
     public void setCategoryId(UUID categoryId) {
         this.categoryId = categoryId;
-    }
-
-    public CategoryEnum getCategoryType() {
-        return categoryType;
-    }
-
-    public void setCategoryType(CategoryEnum categoryType) {
-        this.categoryType = categoryType;
     }
 
     public Category() {

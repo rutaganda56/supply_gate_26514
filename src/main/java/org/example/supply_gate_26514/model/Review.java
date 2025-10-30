@@ -2,7 +2,9 @@ package org.example.supply_gate_26514.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -11,6 +13,17 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID reviewId;
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    @CreationTimestamp
+    private LocalDateTime creationDate;
     @ManyToOne
     @JoinColumn(name ="product_id")
     @JsonBackReference("product-review")

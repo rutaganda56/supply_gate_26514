@@ -1,22 +1,23 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table
-public class Image {
+@Table(name = "product_images")
+public class ProductImage {
     public UUID getImageId() {
         return imageId;
     }
-    @OneToOne(mappedBy = "image", cascade = CascadeType.ALL)
-    @JsonManagedReference("image-product")
+   @ManyToOne
+   @JoinColumn(name = "product_id")
+    @JsonBackReference("image-product")
     private Product product;
 
-    public Image() {
+    public ProductImage() {
     }
 
     public void setImageId(UUID imageId) {
