@@ -1,7 +1,10 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,6 +21,17 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    @JsonBackReference("user-location")
+    private Location location;
+    @OneToOne( mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference("user-store")
+    private Store store;
+    @OneToMany(mappedBy = "user")
+    @JsonManagedReference("user-review")
+    private List<Review> review;
+
 
     public UUID getUserId() {
         return userId;
