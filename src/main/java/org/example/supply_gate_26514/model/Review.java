@@ -1,5 +1,6 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.util.UUID;
@@ -10,6 +11,14 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID reviewId;
+    @ManyToOne
+    @JoinColumn(name ="product_id")
+    @JsonBackReference("product-review")
+    private Product product;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonBackReference("user-review")
+    private User user;
 
     public Review() {
     }
