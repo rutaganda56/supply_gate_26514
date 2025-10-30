@@ -1,6 +1,9 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.UUID;
 @Entity
 @Table(name = "Administative_structure")
@@ -15,6 +18,9 @@ public class Location {
     private  Location parent;
     @Enumerated(EnumType.STRING)
     private LocationEnum locationEnum;
+    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-location")
+    private List<User> user;
 
     public UUID getStructureId() {
         return structureId;
