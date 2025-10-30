@@ -22,20 +22,20 @@ public class StoreController {
     @Autowired
     private StoreService storeService;
 
-    @GetMapping("api/store/stores")
+    @GetMapping("/stores")
     public List<StoreResponseDto> getStores() {
         return storeService.getAllStores();
     }
-    @PostMapping("api/store/createStore")
+    @PostMapping("/createStore")
     @ResponseStatus(HttpStatus.CREATED)
     public StoreResponseDto createStore(@Valid @RequestBody StoreDto storeDto) {
         return storeService.addStore(storeDto);
     }
-    @PutMapping("api/store/{id}")
+    @PutMapping("/{id}")
     public StoreResponseDto updateStore(@PathVariable UUID id, @Valid @RequestBody StoreDto storeDto) {
         return storeService.updateStore(id,storeDto);
     }
-    @DeleteMapping("api/store/deleteStore/{id}")
+    @DeleteMapping("/deleteStore/{id}")
     public void deleteStore(@PathVariable("id") UUID id) {
         storeService.deleteStore(id);
     }
