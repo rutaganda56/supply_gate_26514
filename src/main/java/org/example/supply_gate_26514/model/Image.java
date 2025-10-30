@@ -1,7 +1,9 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -10,6 +12,9 @@ public class Image {
     public UUID getImageId() {
         return imageId;
     }
+    @OneToOne(mappedBy = "image", cascade = CascadeType.ALL)
+    @JsonManagedReference("image-product")
+    private Product product;
 
     public Image() {
     }
