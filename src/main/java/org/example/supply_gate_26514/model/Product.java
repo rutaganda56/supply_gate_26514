@@ -1,7 +1,11 @@
 package org.example.supply_gate_26514.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -10,6 +14,21 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID productId;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    @JsonBackReference("category-product")
+    private Category category;
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    @JsonBackReference("store-product")
+    private Store store;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonManagedReference("product-review")
+    private List<Review> review;
+    @OneToOne
+    @JoinColumn(name = "image_id")
+    @JsonBackReference("image-product")
+    private Image image;
 
     public Product() {
     }
