@@ -12,8 +12,9 @@ public class ProductImage {
     public UUID getImageId() {
         return imageId;
     }
-   @ManyToOne
-   @JoinColumn(name = "product_id")
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
     @JsonBackReference("image-product")
     private Product product;
 
