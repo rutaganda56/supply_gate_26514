@@ -40,9 +40,9 @@ public class ReviewService {
     public ReviewResponseDto updateAReview(UUID id, ReviewDto reviewDto) {
         var existingReview=reviewRepository.findById(id).orElse(new Review());
         existingReview.setMessage(reviewDto.message());
-        var newUser= userRepository.findById(id).orElse(new User());
+        var newUser= userRepository.findById(reviewDto.userId()).orElse(new User());
         existingReview.setUser(newUser);
-        var newProduct=productRepository.findById(id).orElse(new Product());
+        var newProduct=productRepository.findById(reviewDto.productId()).orElse(new Product());
         existingReview.setProduct(newProduct);
         var updatedReview= reviewRepository.save(existingReview);
         return reviewMapper.transformToReviewResponseDto(reviewRepository.save(updatedReview));

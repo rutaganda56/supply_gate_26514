@@ -10,6 +10,8 @@ import org.example.supply_gate_26514.repository.CategoryRepository;
 import org.example.supply_gate_26514.repository.ProductRepository;
 import org.example.supply_gate_26514.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,8 +30,12 @@ public class ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<ProductResponseDto> getAllProducts() {
-        return productRepository.findAll().stream().map(productMapper::transformToProductResponseDto).collect(Collectors.toList());
+//    public List<ProductResponseDto> getAllProducts() {
+//        return productRepository.findAll().stream().map(productMapper::transformToProductResponseDto).collect(Collectors.toList());
+//    }
+    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(productMapper::transformToProductResponseDto);
     }
     public ProductResponseDto getProductById(UUID id) {
         return productRepository.findById(id).map(productMapper::transformToProductResponseDto).orElse(null);

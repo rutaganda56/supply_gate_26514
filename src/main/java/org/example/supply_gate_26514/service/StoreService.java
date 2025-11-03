@@ -39,7 +39,7 @@ public class StoreService {
         existingStore.setPhoneNumber(storeDto.phoneNumber());
         existingStore.setStoreName(storeDto.storeName());
         existingStore.setStoreEmail(storeDto.storeEmail());
-        var newUser=userRepository.findById(storeId).orElse(new User());
+        var newUser=userRepository.findById(storeDto.userId()).orElse(new User());
         existingStore.setUser(newUser);
         var updatedStore=storeRepository.save(existingStore);
         return storeMapper.transformStoreDtoToStoreResponseDto(updatedStore);
