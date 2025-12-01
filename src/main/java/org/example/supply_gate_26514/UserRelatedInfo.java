@@ -9,6 +9,11 @@ import java.util.List;
 
 public class UserRelatedInfo implements UserDetails {
   private User user;
+
+    public UserRelatedInfo(User user) {
+        this.user = user;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
@@ -16,11 +21,11 @@ public class UserRelatedInfo implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getUsername();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getPassword();
+        return user.getUsername();
     }
 }
