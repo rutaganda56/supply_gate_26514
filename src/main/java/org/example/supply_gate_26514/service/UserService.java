@@ -10,6 +10,10 @@ import org.example.supply_gate_26514.repository.LocationRepository;
 import org.example.supply_gate_26514.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,14 +23,29 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private LocationRepository locationRepository;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private JWTService jwtService;
+
+    private BCryptPasswordEncoder passwordEncoder= new BCryptPasswordEncoder(12);
+
+    public String login(User user) {
+        Authentication authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+        if(authentication.isAuthenticated()) {
+            return  jwtService.generateToken(user.getUsername());
+        }
+        return  " login was not successfully made. recheck your credentials";
+    }
 
     public UserResponseDto registerUser(UserDto userDto) {
       var user= userMapper.transformUserToUserDto(userDto);
+      user.setPassword(passwordEncoder.encode(user.getPassword()));
       var savedUser = userRepository.save(user);
       return userMapper.transformUserDtoToUserResponseDto(savedUser);
     }
