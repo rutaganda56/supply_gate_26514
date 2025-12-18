@@ -23,6 +23,26 @@ public class User {
     private String lastName;
     private String email;
     private String phoneNumber;
+    @Column(name = "company_name")
+    private String companyName; // Company/organization name for industry workers
+    
+    // Password reset fields
+    private String passwordResetToken;
+    private LocalDateTime passwordResetTokenExpiry;
+    
+    // Two-factor authentication fields
+    @Column(name = "two_factor_code_hash", length = 255)
+    private String twoFactorCodeHash; // Hashed 2FA code (never store plain text)
+    
+    @Column(name = "two_factor_code_expiry")
+    private LocalDateTime twoFactorCodeExpiry;
+    
+    @Column(name = "two_factor_attempts")
+    private Integer twoFactorAttempts; // Track failed attempts
+    
+    @Column(name = "two_factor_session_id", length = 255)
+    private String twoFactorSessionId; // Temporary session ID for 2FA flow
+    
     @CreationTimestamp
     private LocalDateTime creationDate;
 
@@ -131,6 +151,62 @@ public class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
+
+    public LocalDateTime getPasswordResetTokenExpiry() {
+        return passwordResetTokenExpiry;
+    }
+
+    public void setPasswordResetTokenExpiry(LocalDateTime passwordResetTokenExpiry) {
+        this.passwordResetTokenExpiry = passwordResetTokenExpiry;
+    }
+
+    public String getTwoFactorCodeHash() {
+        return twoFactorCodeHash;
+    }
+
+    public void setTwoFactorCodeHash(String twoFactorCodeHash) {
+        this.twoFactorCodeHash = twoFactorCodeHash;
+    }
+
+    public LocalDateTime getTwoFactorCodeExpiry() {
+        return twoFactorCodeExpiry;
+    }
+
+    public void setTwoFactorCodeExpiry(LocalDateTime twoFactorCodeExpiry) {
+        this.twoFactorCodeExpiry = twoFactorCodeExpiry;
+    }
+
+    public Integer getTwoFactorAttempts() {
+        return twoFactorAttempts != null ? twoFactorAttempts : 0;
+    }
+
+    public void setTwoFactorAttempts(Integer twoFactorAttempts) {
+        this.twoFactorAttempts = twoFactorAttempts;
+    }
+
+    public String getTwoFactorSessionId() {
+        return twoFactorSessionId;
+    }
+
+    public void setTwoFactorSessionId(String twoFactorSessionId) {
+        this.twoFactorSessionId = twoFactorSessionId;
     }
 
     public User() {
