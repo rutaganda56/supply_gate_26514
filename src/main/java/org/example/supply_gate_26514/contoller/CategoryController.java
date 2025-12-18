@@ -5,6 +5,9 @@ import org.example.supply_gate_26514.dto.CategoryDto;
 import org.example.supply_gate_26514.dto.CategoryResponseDto;
 import org.example.supply_gate_26514.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,9 +23,20 @@ import java.util.UUID;
 public class CategoryController {
     @Autowired
     CategoryService categoryService;
+    
+    /**
+     * Get all categories (paginated with search).
+     * Requires authentication.
+     * 
+     * @param pageable Pagination parameters (page, size, sort)
+     * @param search Optional search term to filter categories
+     */
     @GetMapping("categories")
-    public List<CategoryResponseDto> getCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<Page<CategoryResponseDto>> getCategories(
+            @PageableDefault(size = 20, sort = "categoryName") Pageable pageable,
+            @RequestParam(required = false) String search) {
+        Page<CategoryResponseDto> categories = categoryService.getAllCategories(pageable, search);
+        return ResponseEntity.ok(categories);
     }
     @PostMapping("createCategory")
     public CategoryResponseDto createCategory(@Valid @RequestBody CategoryDto dto){

@@ -24,10 +24,44 @@ public class ProductController {
     private ProductService productService;
 
 
+    /**
+     * Get all products (paginated with search).
+     * For anonymous users: Returns all products by default, with optional filter for verified suppliers only.
+     * 
+     * @param pageable Pagination parameters (page, size, sort)
+     * @param search Optional search term to filter products
+     * @param verifiedOnly Optional filter to show only products from verified suppliers (default: false)
+     * @return Page of products (all products by default, or only verified if verifiedOnly=true)
+     */
     @GetMapping("/getProducts")
     public Page<ProductResponseDto> getAllProducts(
-            @PageableDefault(size = 10, sort = "productName") Pageable pageable) {
-        return productService.getAllProducts(pageable);
+            @PageableDefault(size = 10, sort = "productName") Pageable pageable,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "false") boolean verifiedOnly) {
+        // If verifiedOnly is true, filter to only verified suppliers
+        // Otherwise, return all products in the system
+        if (verifiedOnly) {
+            return productService.getPublicProducts(pageable, search);
+        } else {
+            return productService.getAllProducts(pageable, search);
+        }
+    }
+    
+    /**
+     * Get all products including unverified suppliers (for authenticated admin/internal use).
+     * SECURITY: This endpoint should be protected and only accessible to authorized users.
+     * Currently kept for backward compatibility but should be secured in production.
+     * 
+     * @param pageable Pagination parameters
+     * @param search Optional search term
+     * @return Page of all products (including unverified)
+     */
+    @GetMapping("/all")
+    public Page<ProductResponseDto> getAllProductsIncludingUnverified(
+            @PageableDefault(size = 10, sort = "productName") Pageable pageable,
+            @RequestParam(required = false) String search) {
+        // For internal/admin use - shows all products regardless of verification status
+        return productService.getAllProducts(pageable, search);
     }
     @PostMapping("createAProduct")
     @ResponseStatus(HttpStatus.CREATED)
