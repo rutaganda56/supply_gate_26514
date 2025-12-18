@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+.package-lock.json
+.bun.lock
+
+# Ignore npm lock file
+supply_gate_frontend/package-lock.json
+supply_gate_frontend/bun.lock
