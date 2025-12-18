@@ -28,4 +28,34 @@ public class UserRelatedInfo implements UserDetails {
     public String getUsername() {
         return user.getUsername();
     }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+    
+    /**
+     * Gets the underlying User entity.
+     * This is used by SecurityUtils to extract the full user information.
+     * 
+     * @return The User entity
+     */
+    public User getUser() {
+        return user;
+    }
 }

@@ -33,9 +33,65 @@ public class ProductService {
 //    public List<ProductResponseDto> getAllProducts() {
 //        return productRepository.findAll().stream().map(productMapper::transformToProductResponseDto).collect(Collectors.toList());
 //    }
-    public Page<ProductResponseDto> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(productMapper::transformToProductResponseDto);
+    /**
+     * Gets all products (paginated) with optional search.
+     * 
+     * @param pageable Pagination parameters
+     * @param search Optional search term to filter products (searches in productName, productDescription, categoryName, storeName, supplier info)
+     * @return Paginated products
+     */
+    public Page<ProductResponseDto> getAllProducts(Pageable pageable, String search) {
+        // Fetch products with relationships to avoid N+1 queries
+        Page<Product> products;
+        if (search != null && !search.trim().isEmpty()) {
+            products = productRepository.findBySearch(search.trim(), pageable);
+        } else {
+            products = productRepository.findAll(pageable);
+        }
+        
+        return products.map(product -> {
+            // Ensure relationships are loaded
+            if (product.getStore() != null && product.getStore().getUser() != null) {
+                // Trigger lazy loading if needed - verification is accessed via repository, not direct relationship
+                product.getStore().getUser().getUserId(); // Just ensure user is loaded
+            }
+            if (product.getProductImages() != null) {
+                product.getProductImages().size(); // Trigger lazy load
+            }
+            return productMapper.transformToProductResponseDto(product);
+        });
+    }
+    
+    /**
+     * Gets all products for public website display.
+     * SECURITY: Only returns products from verified suppliers (APPROVED status).
+     * This enforces filtering at the database level, not just in the UI.
+     * 
+     * @param pageable Pagination parameters
+     * @param search Optional search term to filter products
+     * @return Page of products from verified suppliers only
+     */
+    public Page<ProductResponseDto> getPublicProducts(Pageable pageable, String search) {
+        Page<Product> products;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            // Search with verification filter
+            products = productRepository.findByVerifiedSuppliersAndSearch(search.trim(), pageable);
+        } else {
+            // All verified products
+            products = productRepository.findByVerifiedSuppliers(pageable);
+        }
+        
+        return products.map(product -> {
+            // Ensure relationships are loaded
+            if (product.getStore() != null && product.getStore().getUser() != null) {
+                product.getStore().getUser().getUserId(); // Trigger lazy load
+            }
+            if (product.getProductImages() != null) {
+                product.getProductImages().size(); // Trigger lazy load
+            }
+            return productMapper.transformToProductResponseDto(product);
+        });
     }
     public ProductResponseDto getProductById(UUID id) {
         return productRepository.findById(id).map(productMapper::transformToProductResponseDto).orElse(null);

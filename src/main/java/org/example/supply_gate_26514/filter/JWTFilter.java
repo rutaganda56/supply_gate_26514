@@ -25,20 +25,69 @@ public class JWTFilter extends OncePerRequestFilter {
     private JWTService jwtService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader=request.getHeader("Authorization");
-        String token=null;
-        String username=null;
-        if(authHeader!=null && authHeader.startsWith("Bearer ")){
-            token =authHeader.substring(7);
-            username=jwtService.extractUserName(token);
+        // Skip authentication for OPTIONS requests (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        if (username!=null&& SecurityContextHolder.getContext().getAuthentication()==null) {
-            UserDetails userDetails= context.getBean(MyUserService.class).loadUserByUsername(username);
-            if (jwtService.validateToken(token,userDetails));
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+        
+        // Skip authentication for public endpoints
+        String requestPath = request.getRequestURI();
+        // Remove query parameters for matching
+        String pathWithoutQuery = requestPath.contains("?") 
+            ? requestPath.substring(0, requestPath.indexOf("?")) 
+            : requestPath;
+        if (isPublicEndpoint(pathWithoutQuery)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        String authHeader = request.getHeader("Authorization");
+        String token = null;
+        String username = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+            try {
+                username = jwtService.extractUserName(token);
+            } catch (Exception e) {
+                // Invalid token - continue to authentication check
+            }
+        }
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                UserDetails userDetails = context.getBean(MyUserService.class).loadUserByUsername(username);
+                if (jwtService.validateToken(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                // Authentication failed - will be handled by Spring Security
+            }
         }
         filterChain.doFilter(request, response);
+    }
+    
+    /**
+     * Checks if the endpoint is public (doesn't require authentication).
+     */
+    private boolean isPublicEndpoint(String path) {
+        return path.startsWith("/api/auth/login") ||
+               path.startsWith("/api/auth/register") ||
+               path.startsWith("/api/auth/forgot-password") ||
+               path.startsWith("/api/auth/reset-password") ||
+               path.startsWith("/api/auth/validate-reset-token") ||
+               path.startsWith("/api/auth/verify-2fa") ||
+               path.startsWith("/api/auth/resend-2fa-code") ||
+               path.startsWith("/api/auth/validate-2fa-session") ||
+               path.startsWith("/api/auth/refresh") ||
+               path.startsWith("/api/auth/companies") ||
+               path.startsWith("/api/location") ||
+               path.startsWith("/api/images") ||
+               path.startsWith("/api/products/getProducts") ||  // Public product listings
+               path.startsWith("/api/messages/send") ||        // Public: Allow visitors to send messages
+               path.startsWith("/swagger") ||
+               path.startsWith("/v3/api-docs") ||
+               path.startsWith("/v2/api-docs");
     }
 }
 
