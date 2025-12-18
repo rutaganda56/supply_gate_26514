@@ -1,81 +1,179 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
-
-interface Notification {
-  id: number;
-  userName: string;
-  message: string;
-  date: string;
-  read: boolean;
-}
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { notificationApi, type NotificationResponseDto } from "@/app/lib/api";
 
 interface NotificationsContextType {
-  notifications: Notification[];
+  notifications: NotificationResponseDto[];
   unreadCount: number;
-  markAsRead: (id: number) => void;
-  markAllAsRead: () => void;
+  loading: boolean;
+  error: string | null;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  refreshNotifications: () => Promise<void>;
 }
-
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    userName: "ruta",
-    message: "message 1",
-    date: "04/7/2025",
-    read: false,
-  },
-  {
-    id: 2,
-    userName: "peace",
-    message: "message 2",
-    date: "11/7/2025",
-    read: false,
-  },
-  {
-    id: 3,
-    userName: "colombe",
-    message: "message 3",
-    date: "12/7/2025",
-    read: false,
-  },
-  {
-    id: 4,
-    userName: "vaillante",
-    message: "message 4",
-    date: "18/7/2025",
-    read: false,
-  },
-];
 
 const NotificationsContext = createContext<
   NotificationsContextType | undefined
 >(undefined);
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationResponseDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Memoize loadNotifications to prevent infinite loops
+  const loadNotifications = useCallback(async () => {
+    // Check if user is authenticated
+    if (typeof window === "undefined") return;
+    
+    const token = localStorage.getItem("token");
+    if (!token) {
+      if (isMountedRef.current) {
+        setNotifications([]);
+        setLoading(false);
+      }
+      return;
+    }
 
-  const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError(null);
+    }
+    
+    try {
+      // Load first page of notifications for the sidebar count
+      // Individual pages will load their own paginated data
+      const data = await notificationApi.getAll(0, 50); // Get first 50 for context
+      
+      if (!isMountedRef.current) return; // Component unmounted, don't update state
+      
+      // Ensure data has the expected structure
+      if (data && Array.isArray(data.content)) {
+        setNotifications(data.content);
+      } else if (Array.isArray(data)) {
+        // Fallback: if API returns array directly instead of paginated response
+        setNotifications(data);
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("Unexpected notification data structure:", data);
+        }
+        setNotifications([]);
+      }
+    } catch (err: any) {
+      if (!isMountedRef.current) return; // Component unmounted, don't update state
+      
+      // If unauthorized, user is not logged in - set empty array (this is expected)
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setNotifications([]);
+        setError(null); // Don't show error for auth issues
+        // Don't log this error - it's expected when user is not logged in
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+        // Network error - don't show error, just keep existing notifications
+        // Don't clear notifications on network error - keep what we have
+        setError(null);
+        // Only log network errors in development
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("Network error loading notifications:", err.message);
+        }
+      } else {
+        // Only log unexpected errors in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to load notifications:", err);
+        }
+        setError(null); // Don't show error to user
+        // Keep existing notifications on error
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, []); // Empty dependency array - function is stable
+
+  // Load notifications on mount
+  useEffect(() => {
+    isMountedRef.current = true;
+    loadNotifications();
+    
+    // Set up polling to refresh notifications every 10 seconds for real-time updates
+    const interval = setInterval(() => {
+      if (isMountedRef.current) {
+        loadNotifications();
+      }
+    }, 10000); // Poll every 10 seconds for better real-time responsiveness
+
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
+  }, [loadNotifications]);
+
+  // Listen for storage changes (when user logs in/out)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "token" && isMountedRef.current) {
+        loadNotifications();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [loadNotifications]);
+
+  // Calculate unread count from notifications (includes both notifications and messages)
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await notificationApi.markAsRead(notificationId);
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.notificationId === notificationId ? { ...n, isRead: true } : n
+        )
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+      throw err;
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      await notificationApi.markAllAsRead();
+      // Update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+      throw err;
+    }
+  };
+
+  const refreshNotifications = async () => {
+    await loadNotifications();
   };
 
   return (
     <NotificationsContext.Provider
-      value={{ notifications, unreadCount, markAsRead, markAllAsRead }}
+      value={{
+        notifications,
+        unreadCount,
+        loading,
+        error,
+        markAsRead,
+        markAllAsRead,
+        refreshNotifications,
+      }}
     >
       {children}
     </NotificationsContext.Provider>
   );
 }
+
 export function useNotifications() {
   const context = useContext(NotificationsContext);
   if (!context) {
