@@ -2,56 +2,49 @@
 
 import {
   LayoutDashboard,
-  Store,
-  Bell,
   CheckSquare,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Menu,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useNotifications } from "@/lib/notifications-context";
 import { Button } from "./ui/button";
 
-interface SidebarProps {
+interface IndustrySidebarProps {
   className?: string;
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Store, label: "Store", href: "/dashboard/store" },
-  {
-    icon: Bell,
-    label: "Notifications",
-    href: "/dashboard/notifications",
-    hasBadge: true,
-  },
-  { icon: CheckSquare, label: "Verification", href: "/dashboard/verification" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/industryDashBoard" },
+  { icon: CheckSquare, label: "Verification", href: "/industryDashBoard/verification" },
+  { icon: Settings, label: "Settings", href: "/industryDashBoard/settings" },
 ];
 
-export function Sidebar({ className }: SidebarProps) {
+export function IndustrySidebar({ className }: IndustrySidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { unreadCount } = useNotifications();
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sidebarCollapsed");
-      return saved === "true";
-    }
-    return false;
-  });
+  // Initialize with false to prevent hydration mismatch
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [profileData, setProfileData] = useState({
     profilePicture: "/professional-man-avatar.png",
-    fullName: "Rutaganda",
-    username: "jean valentin",
+    fullName: "Industry Worker",
+    username: "Worker User",
   });
+
+  // Load sidebar state from localStorage after mount (client-side only)
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem("industrySidebarCollapsed");
+    if (saved === "true") {
+      setIsCollapsed(true);
+    }
+  }, []);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -70,34 +63,42 @@ export function Sidebar({ className }: SidebarProps) {
   }, [isCollapsed]);
 
   useEffect(() => {
-    const loadProfile = () => {
-      const savedProfile = localStorage.getItem("supplierProfile");
+    const savedProfile = localStorage.getItem("industryProfile");
+    if (savedProfile) {
+      const parsed = JSON.parse(savedProfile);
+      setProfileData({
+        profilePicture: parsed.profilePicture || "/professional-man-avatar.png",
+        fullName: parsed.fullName?.split(" ")[0] || "Industry",
+        username: parsed.fullName?.split(" ").slice(1).join(" ") || parsed.username || "Worker",
+      });
+    }
+  }, []);
+  
+  // Listen for profile updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedProfile = localStorage.getItem("industryProfile");
       if (savedProfile) {
         const parsed = JSON.parse(savedProfile);
         setProfileData({
           profilePicture: parsed.profilePicture || "/professional-man-avatar.png",
-          fullName: parsed.fullName?.split(" ")[0] || "Rutaganda",
-          username: parsed.fullName?.split(" ").slice(1).join(" ") || parsed.username || "jean valentin",
+          fullName: parsed.fullName?.split(" ")[0] || "Industry",
+          username: parsed.fullName?.split(" ").slice(1).join(" ") || parsed.username || "Worker",
         });
       }
     };
-    
-    loadProfile();
-    
-    // Listen for profile updates
-    window.addEventListener("profileUpdated", loadProfile);
-    window.addEventListener("storage", loadProfile);
-    
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("profileUpdated", handleStorageChange);
     return () => {
-      window.removeEventListener("profileUpdated", loadProfile);
-      window.removeEventListener("storage", loadProfile);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("profileUpdated", handleStorageChange);
     };
   }, []);
 
   const toggleSidebar = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
-    localStorage.setItem("sidebarCollapsed", String(newState));
+    localStorage.setItem("industrySidebarCollapsed", String(newState));
   };
 
   const handleLogout = () => {
@@ -122,7 +123,7 @@ export function Sidebar({ className }: SidebarProps) {
             : (isCollapsed ? "w-20 self-stretch" : "w-auto min-w-[256px] max-w-[320px] self-stretch"),
           className
         )}
-        style={!isMobile && !isCollapsed ? {
+        style={mounted && !isMobile && !isCollapsed ? {
           width: `${Math.max(256, Math.min(320, 200 + Math.max(...navItems.map(item => item.label.length)) * 7))}px`
         } : undefined}
       >
@@ -148,7 +149,7 @@ export function Sidebar({ className }: SidebarProps) {
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm truncate">{profileData.fullName}</h3>
             <p className="text-xs text-white/80 truncate">{profileData.username}</p>
-            <span className="text-xs text-white/60">Supplier</span>
+            <span className="text-xs text-white/60">Industry</span>
           </div>
         )}
       </div>
@@ -162,6 +163,7 @@ export function Sidebar({ className }: SidebarProps) {
               <li key={item.label}>
                 <Link
                   href={item.href}
+                  prefetch={false}
                   className={cn(
                     "flex items-center rounded-lg transition-all duration-200 group",
                     isCollapsed ? "justify-center px-3 py-3" : "gap-3 px-4 py-3",
@@ -177,17 +179,7 @@ export function Sidebar({ className }: SidebarProps) {
                     isActive && "scale-110"
                   )} />
                   {!isCollapsed && (
-                    <>
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.hasBadge && unreadCount > 0 && (
-                        <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full min-w-[24px] text-center">
-                          {unreadCount.toString().padStart(2, "0")}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {isCollapsed && item.hasBadge && unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-[#1a3a3a]" />
+                    <span className="flex-1 truncate">{item.label}</span>
                   )}
                 </Link>
               </li>
@@ -217,3 +209,4 @@ export function Sidebar({ className }: SidebarProps) {
     </>
   );
 }
+

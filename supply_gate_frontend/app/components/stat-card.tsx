@@ -7,17 +7,17 @@ interface StatCardProps {
 
 export function StatCard({ title, value, change, changeType }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border">
-      <p className="text-xs text-muted-foreground mb-1 text-gray-600">
+    <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <p className="text-sm font-medium text-gray-600 mb-3">
         {title}
       </p>
-      <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold text-gray-900">{value}</span>
+      <div className="flex items-baseline justify-between">
+        <span className="text-3xl font-bold text-gray-900">{value}</span>
         <span
-          className={`text-xs px-2 py-1 rounded ${
+          className={`text-sm font-semibold px-2.5 py-1 rounded-md ${
             changeType === "positive"
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-red-100 text-red-700"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              : "bg-red-50 text-red-700 border border-red-200"
           }`}
         >
           {change}
