@@ -19,6 +19,7 @@ public record UserDto(
         String email,
         @Pattern(regexp = "^[0-9]{10}$")
         String phoneNumber,
-        UUID locationId
+        UUID locationId,
+        String companyName  // Company/organization name (required for industry workers)
 ) {
 }
