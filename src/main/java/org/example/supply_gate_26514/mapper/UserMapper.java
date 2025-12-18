@@ -19,6 +19,7 @@ public class UserMapper {
         user.setLastName(userDto.lastname());
         user.setUsername(userDto.username());
         user.setPhoneNumber(userDto.phoneNumber());
+        user.setCompanyName(userDto.companyName());
         Location location = new Location();
         location.setStructureId(userDto.locationId());
         user.setLocation(location);

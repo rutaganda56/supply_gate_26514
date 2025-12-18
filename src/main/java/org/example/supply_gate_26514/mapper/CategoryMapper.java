@@ -17,6 +17,9 @@ public class CategoryMapper {
         return category;
     }
     public CategoryResponseDto transformCategoryDtoToCategoryResponseDto(Category category) {
-        return new CategoryResponseDto(category.getCategoryName());
+        return new CategoryResponseDto(
+                category.getCategoryId(),
+                category.getCategoryName()
+        );
     }
 }
